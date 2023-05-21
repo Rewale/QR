@@ -11,6 +11,9 @@ def create_app() -> FastAPI:
     container.config.is_test.from_env('IS_TEST')
     db = container.db()
     db.create_database()
+    container.condition()
+    container.state()
+    container.binance_quote_receiver()
 
     application = FastAPI()
     application.container = container
