@@ -1,26 +1,22 @@
 """Services module."""
 
-from uuid import uuid4
-from typing import Iterator
-
-from .repositories import UserRepository
-from .models import User
+from .models import *
+from .repositories import QuotesRepository
 
 
-class QuoteSerive:
+class QuoteService:
+    def __init__(self, user_repository: QuotesRepository) -> None:
+        self._repository: QuotesRepository = user_repository
 
-    def __init__(self, user_repository: UserRepository) -> None:
-        self._repository: UserRepository = user_repository
+    def get_history(self, symbol_name: str) -> list[QuoteHistory]:
+        return self._repository.get_symbol_history(symbol_name)
 
-    def get_quotes(self, symbol_name: str) -> Iterator[User]:
-        return self._repository.get_all()
+    def add_history(self, source_name: str, symbol_name: str,
+                    bid: float, ask: float, time_quote: datetime.datetime = None) -> QuoteHistory:
+        return self._repository.add_symbol_history(source_name=source_name,
+                                                   bid=bid, ask=ask,
+                                                   name=symbol_name,
+                                                   time_quote=time_quote)
 
-    def get_user_by_id(self, user_id: int) -> User:
-        return self._repository.get_by_id(user_id)
-
-    def create_user(self) -> User:
-        uid = uuid4()
-        return self._repository.add(email=f"{uid}@email.com", password="pwd")
-
-    def delete_user_by_id(self, user_id: int) -> None:
-        return self._repository.delete_by_id(user_id)
+    def add_symbol(self, source_name: str, symbol_name: str, url: str) -> Symbol:
+        return self._repository.add_symbol(name=symbol_name, source_name=source_name, source_url=url)
