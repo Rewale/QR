@@ -69,20 +69,16 @@ def get_test_sse_html():
 def stream(request: Request,
            condition=Depends(Provide[Container.condition]),
            state=Depends(Provide[Container.state])):
-    print('start stream')
 
     async def event_stream():
         while True:
             with condition:
-                print('wait...')
                 condition.wait()
 
             if await request.is_disconnected():
                 break
 
             for message in state.quotes:
-                message: pydantic.BaseModel
-                print(message)
                 yield message.json()
 
     return EventSourceResponse(event_stream())

@@ -1,19 +1,14 @@
-# TODO: Убрать в DI контейнер conditon, state
 import threading
 
-import loguru
-
-from webapp.models import QuoteHistory
+import pydantic
 
 
 class State:
     def __init__(self, condition: threading.Condition):
         self.condition = condition
-        self.quotes: list[QuoteHistory] = []
+        self.quotes: list[pydantic.BaseModel] = []
 
-    def update(self, new_quotes: list[QuoteHistory]):
+    def update(self, new_quotes: list[pydantic.BaseModel]):
         self.quotes = new_quotes
-        loguru.logger.info(f"update {new_quotes=}")
         with self.condition:
             self.condition.notify()
-            loguru.logger.info(f"notify")

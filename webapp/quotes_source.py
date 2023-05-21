@@ -32,7 +32,6 @@ class BinanceQuoteReceive(threading.Thread):
         self.source_name = 'Binance'
         self.symbol_name = symbol_name
         wss = self.wss_pattern % symbol_name
-        print(wss)
         self.state = state
         self.wsa = websocket.WebSocketApp(wss, on_message=self.on_message)
         self.service = service
