@@ -16,7 +16,7 @@ class QuotesRepository:
 
     def get_symbol_history(self, symbol_name: str) -> list[QuoteHistory]:
         with self.session_factory() as session:
-            quote_history = session.query(QuoteHistory).filter(QuoteHistory.symbol_name == symbol_name).first()
+            quote_history = session.query(QuoteHistory).filter(QuoteHistory.symbol_name == symbol_name).all()
             if not quote_history:
                 raise SymbolNotFound(symbol_name)
             return quote_history

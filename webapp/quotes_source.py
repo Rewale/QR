@@ -43,24 +43,21 @@ class BinanceQuoteReceive(threading.Thread):
 
     def on_message(self, _wsa, data: str):
         data = json.loads(data)
-        loguru.logger.info(f"Get quotes")
-        # TODO: не работает запись в бд
-        # quote_history = self.service.add_history(
-        #     source_name=self.source_name,
-        #     symbol_name=self.symbol_name,
-        #     time_quote=datetime.datetime.fromtimestamp(data['E']),
-        #     bid=data['b'],
-        #     ask=data['a'])
+
         try:
-            # quote_history.quote_time = datetime.datetime.fromtimestamp(data['E'])
-            quote_time = datetime.datetime.now()
+            quote_time = datetime.datetime.fromtimestamp(int(data['E'] / 1000))
             bid = data['b']
             ask = data['a']
             symbol_name = self.symbol_name
             source_name = self.source_name
+            self.service.add_history(
+                source_name=self.source_name,
+                symbol_name=self.symbol_name,
+                time_quote=quote_time,
+                bid=bid,
+                ask=ask)
             quote_history = QuoteHistoryEvent(bid=bid, ask=ask, symbol_name=symbol_name, source_name=source_name,
-                                              quote_time=datetime.datetime.now())
-            loguru.logger.info(f"Update quotes {quote_history=}")
+                                              quote_time=quote_time)
             self.state.update([quote_history])
         except Exception as e:
             loguru.logger.exception(e)
