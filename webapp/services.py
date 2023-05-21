@@ -1,15 +1,15 @@
 """Services module."""
 import logging
 
+import loguru
+
 from .models import *
 from .repositories import QuotesRepository
-
-logger = logging.getLogger(__name__)
 
 
 class QuoteService:
     def __init__(self, user_repository: QuotesRepository) -> None:
-        logger.info(f"{user_repository=}")
+        loguru.logger.info('RUN')
         self._repository: QuotesRepository = user_repository
 
     def get_history(self, symbol_name: str) -> list[QuoteHistory]:

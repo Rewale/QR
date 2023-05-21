@@ -25,6 +25,7 @@ class BinanceQuoteReceive(threading.Thread):
     wss_pattern = 'wss://stream.binance.com:9443/ws/%s@ticker'
 
     def __init__(self, symbol_name: str, state: State, service: QuoteService):
+        loguru.logger.info("start quote")
         super().__init__()
         symbol_name = symbol_name.lower()
         loguru.logger.info("start quote")

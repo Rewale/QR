@@ -1,19 +1,15 @@
 """Endpoints module."""
-import asyncio
-import json
 
 import pydantic
 from dependency_injector.wiring import inject, Provide
 from fastapi import APIRouter, Depends, status
 from sse_starlette import EventSourceResponse
 from starlette.requests import Request
-from starlette.responses import Response, StreamingResponse, FileResponse
+from starlette.responses import Response, FileResponse
 
 from .containers import Container
-from .models import QuoteHistory
 from .repositories import NotFoundError
 from .services import QuoteService
-from .sse import condition, state
 
 router = APIRouter()
 
@@ -69,7 +65,10 @@ def get_test_sse_html():
 
 
 @router.get('/stream')
-async def stream(request: Request):
+@inject
+def stream(request: Request,
+           condition=Depends(Provide[Container.condition]),
+           state=Depends(Provide[Container.state])):
     print('start stream')
 
     async def event_stream():
@@ -85,7 +84,5 @@ async def stream(request: Request):
                 message: pydantic.BaseModel
                 print(message)
                 yield message.json()
-
-            # await asyncio.sleep(0.1)
 
     return EventSourceResponse(event_stream())

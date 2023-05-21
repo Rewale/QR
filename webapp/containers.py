@@ -1,4 +1,5 @@
 """Containers module."""
+import threading
 from unittest.mock import Mock
 
 from dependency_injector import containers, providers
@@ -17,7 +18,8 @@ class Container(containers.DeclarativeContainer):
 
     Real_db = providers.Singleton(Database, db_url=config.db.url)
     Test_db = providers.Singleton(Mock())
-    state = providers.Singleton(State)
+    condition = providers.Singleton(threading.Condition)
+    state = providers.Singleton(State, condition=condition)
 
     db = providers.Selector(
         config.is_test,
@@ -32,4 +34,11 @@ class Container(containers.DeclarativeContainer):
     quote_service = providers.Factory(
         QuoteService,
         user_repository=quote_repository,
+    )
+
+    binance_quote_receiver = providers.Singleton(
+        BinanceQuoteReceive,
+        symbol_name='BTCUSDT',
+        state=state,
+        service=quote_service
     )
