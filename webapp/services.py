@@ -7,12 +7,12 @@ from .repositories import UserRepository
 from .models import User
 
 
-class UserService:
+class QuoteSerive:
 
     def __init__(self, user_repository: UserRepository) -> None:
         self._repository: UserRepository = user_repository
 
-    def get_users(self) -> Iterator[User]:
+    def get_quotes(self, symbol_name: str) -> Iterator[User]:
         return self._repository.get_all()
 
     def get_user_by_id(self, user_id: int) -> User:

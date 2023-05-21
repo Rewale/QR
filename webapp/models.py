@@ -1,21 +1,38 @@
 """Models module."""
+import datetime
 
-from sqlalchemy import Column, String, Boolean, Integer
+from sqlalchemy import Column, String, Boolean, Integer, Float, DateTime
+from sqlalchemy.orm import relationship
 
 from .database import Base
 
 
-class User(Base):
+class Source(Base):
+    __tablename__ = "source"
 
-    __tablename__ = "users"
+    name = Column(String, primary_key=True)
+    url = Column(String)
+    connect_type = Column(String(12), default="ws")
 
-    id = Column(Integer, primary_key=True)
-    email = Column(String, unique=True)
-    hashed_password = Column(String)
-    is_active = Column(Boolean, default=True)
 
-    def __repr__(self):
-        return f"<User(id={self.id}, " \
-               f"email=\"{self.email}\", " \
-               f"hashed_password=\"{self.hashed_password}\", " \
-               f"is_active={self.is_active})>"
+class Symbol(Base):
+    __tablename__ = "symbol"
+
+    name = Column(String, max)
+    source = relationship('Source', backref='symbol_source', lazy='subquery')
+
+
+class QuoteHistory(Base):
+    __tablename__ = "history"
+
+    id = Column(
+        Integer,
+        nullable=False,
+        unique=True,
+        primary_key=True,
+        autoincrement=True
+    )
+    quote_time = Column(DateTime, default=datetime.datetime.now)
+    symbol = relationship('Symbol', backref='history_symbol', lazy='subquery')
+    ask = Column(Float(20))
+    bid = Column(Float(20))
