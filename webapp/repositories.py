@@ -3,6 +3,7 @@ import datetime
 from contextlib import AbstractContextManager
 from typing import Callable
 
+import sqlalchemy
 from sqlalchemy.orm import Session
 
 from .models import Source, Symbol, QuoteHistory
@@ -15,20 +16,26 @@ class QuotesRepository:
 
     def get_symbol_history(self, symbol_name: str) -> list[QuoteHistory]:
         with self.session_factory() as session:
-            quote_history = session.query(QuoteHistory).filter(QuoteHistory.symbol.name == symbol_name).first()
+            quote_history = session.query(QuoteHistory).filter(QuoteHistory.symbol_name == symbol_name).first()
             if not quote_history:
                 raise SymbolNotFound(symbol_name)
             return quote_history
 
     def add_symbol(self, name: str, source_name: str, source_url: str) -> Symbol:
         with self.session_factory() as session:
-            source = Source(name=source_name, url=source_url)
-            session.add(source)
+            source = session.query(Source).filter(Source.name == source_name).first()
+            if not source:
+                source = Source(name=source_name, url=source_url)
+                session.add(source)
 
             user = Symbol(name=name, source=source)
             session.add(user)
 
-            session.commit()
+            try:
+                session.commit()
+            except sqlalchemy.exc.IntegrityError as ex:
+                return user
+
             session.refresh(user)
             return user
 

@@ -1,10 +1,13 @@
 """Endpoints module."""
+import asyncio
 import json
 
 import pydantic
 from dependency_injector.wiring import inject, Provide
 from fastapi import APIRouter, Depends, status
-from starlette.responses import Response, StreamingResponse
+from sse_starlette import EventSourceResponse
+from starlette.requests import Request
+from starlette.responses import Response, StreamingResponse, FileResponse
 
 from .containers import Container
 from .models import QuoteHistory
@@ -28,8 +31,7 @@ class SymbolCreate(pydantic.BaseModel):
 @router.get("/quotes/{symbol_name}")
 @inject
 def get_quotes_history(symbol_name: str,
-                       quote_service: QuoteService = Depends(Provide[Container.quote_service])) -> list[
-                                                                                                       QuoteHistory] | Response:
+                       quote_service: QuoteService = Depends(Provide[Container.quote_service])):
     try:
         return quote_service.get_history(symbol_name)
     except NotFoundError:
@@ -61,14 +63,29 @@ def get_status():
     return {"status": "OK"}
 
 
+@router.get("/test")
+def get_test_sse_html():
+    return FileResponse('public/index.html')
+
+
 @router.get('/stream')
-def stream():
-    def event_stream():
+async def stream(request: Request):
+    print('start stream')
+
+    async def event_stream():
         while True:
             with condition:
+                print('wait...')
                 condition.wait()
 
-            for message in state.quotes:
-                yield json.dumps(message)
+            if await request.is_disconnected():
+                break
 
-    return StreamingResponse(event_stream(), media_type="text/event-stream")
+            for message in state.quotes:
+                message: pydantic.BaseModel
+                print(message)
+                yield message.json()
+
+            # await asyncio.sleep(0.1)
+
+    return EventSourceResponse(event_stream())
