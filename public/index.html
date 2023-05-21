@@ -1,22 +1,38 @@
 <!doctype html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <title>Server Sent Event</title>
+  <meta charset="UTF-8">
+  <title>Server Sent Event</title>
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.css">
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.min.js"></script>
 </head>
-
 <body>
-<div class="event-data"></div>
+<div id="myfirstchart" style="height: 450px; width: 1000px;"></div>
 </body>
-
-<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
-<script>
-    // EventSource object of javascript listens the streaming events from our go server and prints the message.
-    var stream = new EventSource("/stream");
-    stream.addEventListener("message", function(e){
-        $('.event-data').append(e.data + "</br>")
-    });
+<script type="module">
+  let data = [];
+  const line = new Morris.Line({
+    // ID of the element in which to draw the chart.
+    element: 'myfirstchart',
+    // Chart data records -- each entry in this array corresponds to a point on
+    // the chart.
+    data: [],
+    // The name of the data record attribute that contains x-values.
+    xkey: 'time',
+    // A list of names of data record attributes that contain y-values.
+    ykeys: ['bid', 'ask'],
+  });
+  // EventSource object of javascript listens the streaming events from our go server and prints the message.
+  const stream = new EventSource("/stream");
+  stream.addEventListener("message", function (e) {
+    const msg = JSON.parse(e.data)
+    data = [...data, {"bid": msg['bid'], 'ask': msg['ask'], 'time': msg['quote_time']}]
+    if (data.length > 50) {
+      data = data.slice(data.length - 50, data.length - 1)
+    }
+    line.setData(data)
+  });
 </script>
-
 </html>
