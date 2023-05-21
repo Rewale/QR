@@ -27,7 +27,7 @@ class Container(containers.DeclarativeContainer):
         session_factory=db.provided.session,
     )
 
-    user_service = providers.Factory(
+    quote_service = providers.Factory(
         UserService,
         user_repository=user_repository,
     )
