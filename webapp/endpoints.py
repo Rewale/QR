@@ -1,4 +1,5 @@
 """Endpoints module."""
+import asyncio
 
 import pydantic
 from dependency_injector.wiring import inject, Provide
@@ -66,19 +67,25 @@ def get_test_sse_html():
 
 @router.get('/stream')
 @inject
-def stream(request: Request,
-           condition=Depends(Provide[Container.condition]),
-           state=Depends(Provide[Container.state])):
-
+async def stream(request: Request,
+                 condition=Depends(Provide[Container.condition]),
+                 state=Depends(Provide[Container.state])):
     async def event_stream():
         while True:
-            with condition:
-                condition.wait()
+            async with condition:
+                await condition.wait()
 
             if await request.is_disconnected():
                 break
 
             for message in state.quotes:
-                yield message.json()
+                yield {
+                    "event": "message",
+                    "id": "message_id",
+                    "retry": 15_000,
+                    "data": message.json()
+                }
+
+            await asyncio.sleep(1)
 
     return EventSourceResponse(event_stream())

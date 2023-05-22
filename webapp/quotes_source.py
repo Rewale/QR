@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import json
 import logging
@@ -58,7 +59,7 @@ class BinanceQuoteReceive(threading.Thread):
                 ask=ask)
             quote_history = QuoteHistoryEvent(bid=bid, ask=ask, symbol_name=symbol_name, source_name=source_name,
                                               quote_time=quote_time)
-            self.state.update([quote_history])
+            asyncio.run(self.state.update([quote_history]))
         except Exception as e:
             loguru.logger.exception(e)
             raise e

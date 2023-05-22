@@ -1,5 +1,5 @@
 """Containers module."""
-import threading
+import asyncio
 from unittest.mock import Mock
 
 from dependency_injector import containers, providers
@@ -18,7 +18,7 @@ class Container(containers.DeclarativeContainer):
 
     Real_db = providers.Singleton(Database, db_url=config.db.url)
     Test_db = providers.Singleton(Mock())
-    condition = providers.Singleton(threading.Condition)
+    condition = providers.Singleton(asyncio.Condition)
     state = providers.Singleton(State, condition=condition)
 
     db = providers.Selector(
